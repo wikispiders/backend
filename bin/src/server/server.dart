@@ -14,13 +14,14 @@ class BackendServer {
 
   Future<void> start() async {
     final services = Service(); 
-    final httpHandler = Pipeline().addMiddleware(logRequests()).addHandler(services.httpHandler());
+    final httpHandler = Pipeline().addMiddleware(logRequests()).addHandler(services.httpHandler(lobby));
     final httpServer = await serve(httpHandler, ip, httpPort);
-    print('HTTP Server listening on port ${httpServer.port}');
 
-    final webSocketHandler = Pipeline().addMiddleware(logRequests()).addHandler(services.webSocketHandler(lobby));
-    final webSocketServer = await serve(webSocketHandler, ip, webSocketPort);
-    print('WebSocket Server listening on port ${webSocketServer.port}');
+    //final webSocketHandler = Pipeline().addMiddleware(logRequests()).addHandler(services.webSocketHandler(lobby));
+    //final webSocketServer = await serve(webSocketHandler, ip, webSocketPort);
+
+    print('HTTP Server listening on port ${httpServer.port}');
+    // print('WebSocket Server listening on port ${webSocketServer.port}');
 
   }
 

@@ -8,10 +8,19 @@ class Lobby {
 
   Lobby();
 
-  void hi (webSocket) {
-    webSocket.listen((message) {
-      webSocket.add('Received: $message');
-    });
+  void hi (WebSocket socket) {
+    socket.listen(
+      (message) {
+        print('recibi: $message');
+        socket.add('Received: $message');
+      },
+      onDone: () {
+        print('Termina la conexion');
+      },
+      onError: (error) {
+        print('Error: $error');
+      },
+    );
   }
 
   // start() async {
