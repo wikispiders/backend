@@ -1,20 +1,31 @@
 import 'package:shelf_router/shelf_router.dart';
 import 'package:shelf/shelf.dart';
+import '../src/lobby/lobby.dart';
+import 'package:shelf_web_socket/shelf_web_socket.dart' as sWs;
 
-Router myRouter() {
-  final router = Router();
+class Service {
+  Handler httpHandler() {
+    final router = Router();
 
-  router.get('/', _rootHandler);
-  router.get('/echo/<message>', _echoHandler);
+    router.get('/say-hi/<name>', (Request request, String name) {
+      return Response.ok('hi $name');
+    });
 
-  return router;
-}
+    router.get('/wave', (Request request) async {
+      await Future<void>.delayed(Duration(milliseconds: 100));
+      return Response.ok('_o/');
+    });
 
-Response _rootHandler(Request req) {
-  return Response.ok('Hello, World!\n');
-}
+    router.all('/<ignored|.*>', (Request request) {
+      return Response.notFound('Page not found');
+    });
 
-Response _echoHandler(Request request) {
-  final message = request.params['message'];
-  return Response.ok('$message\n');
+    return router;
+  }
+
+
+  Handler webSocketHandler(Lobby lobby) {
+    var webSocketHandler = sWs.webSocketHandler(lobby.hi);
+    return webSocketHandler;
+  }
 }
