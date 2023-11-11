@@ -1,28 +1,33 @@
 import 'dart:io';
-import 'package:shelf/shelf.dart';
-import 'package:shelf/shelf_io.dart';
-import '../../routes/routes.dart';
 import '../lobby/lobby.dart';
 
 class BackendServer {
   InternetAddress ip;
-  int httpPort;
-  int webSocketPort;
+  int port;
   Lobby lobby = Lobby();
 
-  BackendServer({required this.ip, required this.httpPort, required this.webSocketPort});
+  BackendServer({required this.ip, required this.port});
 
   Future<void> start() async {
-    final services = Service(); 
-    final httpHandler = Pipeline().addMiddleware(logRequests()).addHandler(services.httpHandler(lobby));
-    final httpServer = await serve(httpHandler, ip, httpPort);
+    final server = await HttpServer.bind(ip, port);
+    print('Listening on ws://${server.address.address}:${server.port}');
 
-    //final webSocketHandler = Pipeline().addMiddleware(logRequests()).addHandler(services.webSocketHandler(lobby));
-    //final webSocketServer = await serve(webSocketHandler, ip, webSocketPort);
-
-    print('HTTP Server listening on port ${httpServer.port}');
-    // print('WebSocket Server listening on port ${webSocketServer.port}');
-
+    await for (HttpRequest request in server) {
+      final endpoints = request.uri.path.split('/');
+      if (endpoints.isNotEmpty && endpoints[1] == 'create') {
+        print("Es un create");
+        WebSocketTransformer.upgrade(request).then(lobby.create);
+      } else if (endpoints.length > 1 && endpoints[1] == 'join') {
+        print("Es un join");
+        WebSocketTransformer.upgrade(request).then((WebSocket socket) {
+          lobby.join(socket, endpoints[2]);
+        });      
+      } else {
+        request.response
+          ..statusCode = HttpStatus.forbidden
+          ..close();
+      }
+    }
   }
 
 }

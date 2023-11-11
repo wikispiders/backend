@@ -1,36 +1,42 @@
-import 'package:shelf_router/shelf_router.dart';
-import 'package:shelf/shelf.dart';
-import '../src/lobby/lobby.dart';
-import 'package:shelf_web_socket/shelf_web_socket.dart' as sws;
+// import 'package:shelf_router/shelf_router.dart';
+// import 'package:shelf/shelf.dart';
+// import '../src/lobby/lobby.dart';
+// import 'package:shelf_web_socket/shelf_web_socket.dart' as sws;
 
-class Service {
-  Handler httpHandler(Lobby lobby) {
-    final router = Router();
+// class Service {
+//   Handler httpHandler(Lobby lobby) {
+//     final router = Router();
 
-    router.get('/', (Request request) async {
-      await Future<void>.delayed(Duration(milliseconds: 100));
-      return Response.ok('Hello, World!\n');
-    });
+//     router.get('/', (Request request) async {
+//       await Future<void>.delayed(Duration(milliseconds: 100));
+//       print("Lllega un mensaje al server");
+//       return Response.ok('Hello, World!\n');
+//     });
 
-    router.get('/echo/<message>', (Request request, String message) {
-      return Response.ok(message);
-    });
+//     router.get('/echo/<message>', (Request request, String message) {
+//       return Response.ok(message);
+//     });
 
-    router.get('/ws', (Request request) {
-      return sws.webSocketHandler(lobby.hi)(request);
-    });
+//     router.get('/ws', (Request request) {
+//       return sws.webSocketHandler(lobby.hi)(request);
+//     });
 
-
-    router.all('/<ignored|.*>', (Request request) {
-      return Response.notFound('Page not found');
-    });
-
-    return router;
-  }
+//     router.get('/create', (Request request) {
+//       return sws.webSocketHandler(lobby.create)(request);
+//     });
 
 
-  Handler webSocketHandler(Lobby lobby) {
-    var webSocketHandler = sws.webSocketHandler(lobby.hi);
-    return webSocketHandler;
-  }
-}
+//     router.post('/join/<gameid>', (Request request, String gameid) {
+//       return sws.webSocketHandler((webSocket) {
+//         lobby.join(webSocket, gameid);
+//       });
+//     });
+
+
+//     router.all('/<ignored|.*>', (Request request) {
+//       return Response.notFound('Page not found');
+//     });
+
+//     return router;
+//   }
+// }

@@ -1,6 +1,7 @@
-import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
 
+import '../player/player.dart';
 import '../game/game.dart';
 
 class Lobby {
@@ -8,53 +9,33 @@ class Lobby {
 
   Lobby();
 
-  void hi (WebSocket socket) {
-    socket.listen(
-      (message) {
-        print('recibi: $message');
-        socket.add('Received: $message');
-      },
-      onDone: () {
-        print('Termina la conexion');
-      },
-      onError: (error) {
-        print('Error: $error');
-      },
-    );
+
+  Future<void> create (WebSocket socket) async {
+    var gameid = DateTime.now().microsecondsSinceEpoch.toString(); // TODO: crear gameid con algo mas aleatorio.
+    final player = Player('creador nombre', socket);
+    var game = Game(gameid, player); // TODO: cambiar socket por clase Player.
+    games[gameid] = game; // TODO: chequear si existe
+    final finished =  game.start();
+    player.receiveEvents(game.eventsQueue);
+    await finished; // TODO: Eliminar al juego del diccionario.
+    print('termina el creador');
   }
 
-  // start() async {
-  //     await for (HttpRequest request in server) {
-  //   try {
-  //     if (request.uri.path == '/crearPartida') {
-  //       var token = DateTime.now().microsecondsSinceEpoch.toString();
-  //       var game = Game(token);
-  //       games[token] = game;
-  //       request.response
-  //         ..statusCode = HttpStatus.ok
-  //         ..write(jsonEncode({'token': token}))
-  //         ..close();
-  //     } else if (request.uri.path == '/unirse') {
-  //       var token = request.uri.queryParameters['token'];
-  //       if (games.containsKey(token)) {
-  //         var game = games[token]!;
-  //         WebSocketTransformer.upgrade(request).then((WebSocket socket) {
-  //           game.addPlayer(socket);
-  //         });
-  //       } else {
-  //         request.response
-  //           ..statusCode = HttpStatus.notFound
-  //           ..write('Partida no encontrada')
-  //           ..close();
-  //       }
-  //     }
-  //   } catch (e) {
-  //     request.response
-  //       ..statusCode = HttpStatus.internalServerError
-  //       ..write('Error en el servidor: $e')
-  //       ..close();
-  //   }
-  // }
-  // }
+
+  void join (WebSocket socket, String gameid) {
+    var game = games[gameid]; // TODO: chequear error.
+    if (game == null) {
+      socket.add({
+        'status': 'error',
+        'msg': 'Game doesnt exist'
+      });
+      return;
+    }
+    final player = Player('un nombre', socket);
+
+    if (game.addPlayer(player)) {
+      player.receiveEvents(game.eventsQueue);
+    }
+  }
   
 }
