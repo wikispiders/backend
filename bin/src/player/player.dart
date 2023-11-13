@@ -1,6 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
+
+import '../events/game_events/game_event.dart';
+import '../events/server_events/server_event.dart';
 
 
 class Player {
@@ -9,16 +11,21 @@ class Player {
   String get name => _name;
   Player(this._name, this._socket);
 
-  void send(String message) {
-    _socket.add(message);
+  void send(ServerEvent message) {
+    _socket.add(message.encode());
   }
 
   // escucha mensajes del cliente y los forwardea a la queue del juego.
-  void receiveEvents(WebSocket socket, StreamController<String> eventsQueue) {
-    socket.listen(
+  void receiveEvents(StreamController<GameEvent> eventsQueue) {
+    _socket.listen(
       (data) {
         print('Received: $data');
-        eventsQueue.sink.add(data); // si esto falla, deberia terminar el loop.
+        try {
+          final GameEvent event = GameEvent.fromEncodedData(data, _name);
+          eventsQueue.sink.add(event); // si esto falla, deberia terminar el loop.
+        } catch (e) {
+          print('FALLLLOOOOOOOOO'); // TODO
+        }
       },
       onDone: () {
         print('Connection closed');
@@ -27,10 +34,6 @@ class Player {
         print('Error: $error');
       },
     );
-  }
-
-  void createSuccessful(String gameid) {
-    send(jsonEncode({'gameid': gameid})); // TODO: manejar el error
   }
 
 }

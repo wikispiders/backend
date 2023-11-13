@@ -1,41 +1,51 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
+import '../events/server_events/error.dart';
 import '../player/player.dart';
 import '../game/game.dart';
 
 class Lobby {
-  Map<String, Game> games = {};
+  Map<int, Game> games = {};
 
   Lobby();
 
+  Future<void> create (WebSocket socket, String playerName) async {
+    final gameid = _generateGameId(); 
+    final player = Player(playerName, socket);
+    var game = Game(gameid, player);
+    games[gameid] = game; 
 
-  Future<void> create (WebSocket socket) async {
-    var gameid = DateTime.now().microsecondsSinceEpoch.toString(); // TODO: crear gameid con algo mas aleatorio.
-    final player = Player('creador nombre', socket);
-    var game = Game(gameid, player); // TODO: cambiar socket por clase Player.
-    games[gameid] = game; // TODO: chequear si existe
     final finished =  game.start();
     player.receiveEvents(game.eventsQueue);
-    await finished; // TODO: Eliminar al juego del diccionario.
+    
+    await finished;
+    games.remove(gameid);
     print('termina el creador');
   }
 
 
-  void join (WebSocket socket, String gameid) {
-    var game = games[gameid]; // TODO: chequear error.
-    if (game == null) {
-      socket.add({
-        'status': 'error',
-        'msg': 'Game doesnt exist'
-      });
+  void join (WebSocket socket, int gameid, String playerName) {
+    final player = Player('un nombre', socket);
+    
+    if (!games.containsKey(gameid)) {
+      player.send(ErrorEvent('Game doesnt exist'));
       return;
     }
-    final player = Player('un nombre', socket);
+    var game = games[gameid]; 
 
-    if (game.addPlayer(player)) {
+    if (game!.addPlayer(player)) {
       player.receiveEvents(game.eventsQueue);
     }
   }
   
+
+  int _generateGameId() {
+    var posibleGameid = Random().nextInt(900000) + 100000; // numero de 6 digitos.
+    while (games.containsKey(posibleGameid)) {
+      posibleGameid = Random().nextInt(900000) + 100000;
+    }
+    return posibleGameid;
+  }
 }

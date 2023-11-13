@@ -1,72 +1,84 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
+import '../events/game_events/game_event.dart';
+import '../events/server_events/create_successful.dart';
+import '../events/server_events/error.dart';
+import '../events/server_events/join_successful.dart';
+import '../events/server_events/server_event.dart';
+import '../events/server_events/start_game.dart';
 import '../player/player.dart';
 
 class Game {
-  String gameid;
+  int gameid;
   List<Player> players = [];
   var started = false;
-  final loopsGame = 5;
-  final StreamController<String> _eventsQueue = StreamController<String>();
-  StreamController<String> get eventsQueue => _eventsQueue;
+  late final Future<void> gameLoopEnded;
+  final loopsGame = 5; // TODO constante
+  final StreamController<GameEvent> _eventsQueue = StreamController<GameEvent>();
+  StreamController<GameEvent> get eventsQueue => _eventsQueue;
 
 
   Game(this.gameid, Player player) {
     players = [player];
-    player.createSuccessful(gameid);
+    player.send(CreateSuccessful(gameid));
   }
 
   bool addPlayer(Player player) {
     if (started) {
-      player.add({
-        'status': 'error',
-        'msg': 'Game already started'
-      });
+      player.send(ErrorEvent('Game already started'));
       return false;
     } else {  
       players.add(player);
-      player.add(jsonEncode({'join': 'success'}));
-      eventsQueue.add(jsonEncode({'event': 'newplayer'}));
+      broadcast(JoinSuccessful(player.name, players.map((p) => p.name).toList()));
       return true;
     }
   }
-  
 
   Future<void> start() async {
-    late Future<void> gameLoopEnded;
     print('arranca la partida');
-    await for (String event in  _eventsQueue.stream) {
-      print("El juego recibe el evento $event");
-      Map<String, dynamic> received = jsonDecode(event);
-      final typeEvent = received['event']; 
-      if (typeEvent == 'newplayer') {
-        print('llega un nuevo jugador. Aviso a todos los demas!');
-        broadcast(jsonEncode({
-          'event': 'newplayer',
-          'players': 
-        }))
-        gameLoopEnded = gameLoop();
-      } else if (typeEvent == 'end') {
-        break;
-      }
-    } 
-    await gameLoopEnded;
+    await for (GameEvent event in _eventsQueue.stream) {
+      if (event.execute(this)) break;
+    }
+    if (started) {
+      await gameLoopEnded;
+    }
     print('Termina el juego');
   }
 
 
-  Future<void> gameLoop() async {
-    started = true;
+  void startGame() {
+    if (started) {
+      print('Error: already started');
+    } else {
+      started = true;
+      gameLoopEnded = gameLoop();
+    }
+  }
+
+  void broadcast (ServerEvent message) {
+    for (final player in players) {
+      player.send(message);
+    }
+  }
+
+
+ Future<void> gameLoop() async {
     print('Starting Gameloop');
 
     print('notify players of start...');
-    broadcast(jsonEncode({
+    
+    final timeToStart = 3;
+    broadcast(StartGame(timeToStart));
+    await Future.delayed(Duration(seconds: timeToStart), () {
+      print('Game is about to start');
+    });
+      
+      jsonEncode({
       'event': 'start',
       'time': 10,
-    }));
+    }) as EventDTO);
     await Future.delayed(Duration(seconds: 10), () {
       print('Game is about to start');
     });
@@ -85,35 +97,6 @@ class Game {
 
 
   }
-
-
-
-  void broadcast (String message) async {
-    for (var player in players) {
-      player.add(message);
-    }
-  }
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   void sendQuestionToPlayers() {
     // Lógica para enviar la pregunta y opciones a los jugadores
