@@ -1,20 +1,42 @@
-import 'package:shelf_router/shelf_router.dart';
-import 'package:shelf/shelf.dart';
+// import 'package:shelf_router/shelf_router.dart';
+// import 'package:shelf/shelf.dart';
+// import '../src/lobby/lobby.dart';
+// import 'package:shelf_web_socket/shelf_web_socket.dart' as sws;
 
-Router myRouter() {
-  final router = Router();
+// class Service {
+//   Handler httpHandler(Lobby lobby) {
+//     final router = Router();
 
-  router.get('/', _rootHandler);
-  router.get('/echo/<message>', _echoHandler);
+//     router.get('/', (Request request) async {
+//       await Future<void>.delayed(Duration(milliseconds: 100));
+//       print("Lllega un mensaje al server");
+//       return Response.ok('Hello, World!\n');
+//     });
 
-  return router;
-}
+//     router.get('/echo/<message>', (Request request, String message) {
+//       return Response.ok(message);
+//     });
 
-Response _rootHandler(Request req) {
-  return Response.ok('Hello, World!\n');
-}
+//     router.get('/ws', (Request request) {
+//       return sws.webSocketHandler(lobby.hi)(request);
+//     });
 
-Response _echoHandler(Request request) {
-  final message = request.params['message'];
-  return Response.ok('$message\n');
-}
+//     router.get('/create', (Request request) {
+//       return sws.webSocketHandler(lobby.create)(request);
+//     });
+
+
+//     router.post('/join/<gameid>', (Request request, String gameid) {
+//       return sws.webSocketHandler((webSocket) {
+//         lobby.join(webSocket, gameid);
+//       });
+//     });
+
+
+//     router.all('/<ignored|.*>', (Request request) {
+//       return Response.notFound('Page not found');
+//     });
+
+//     return router;
+//   }
+// }
