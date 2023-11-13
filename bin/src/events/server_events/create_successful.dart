@@ -11,7 +11,7 @@ class CreateSuccessful extends ServerEvent {
   String encode() {
     return jsonEncode({
       'event': 'create',
-      'gameId': gameid
+      'gameid': gameid
     });
   }
 }

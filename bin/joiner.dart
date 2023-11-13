@@ -1,30 +1,35 @@
 import 'dart:convert';
 import 'dart:io';
 
-Future<void> joiner(String gameId) async {
+Future<bool> joiner(int gameId) async {
   final socket = await WebSocket.connect('ws://127.0.0.1:4040/join/$gameId');
-  var firsAnswer = true;
-  socket.listen(
+  var n = 0;
+  await socket.listen(
     (data) {
+      n++;
       Map<String, dynamic> receivedData = jsonDecode(data);
-      if (firsAnswer) {
-        print('Received: ${receivedData['gameid']}');
+      print('JOINER: Received: $receivedData');
+      
+      if (n == 1) {
+        final players = receivedData['players'];
+        print('JOINER: Los jugadores son: $players');
         // Aca imprimiriamos el juego en el front.
-        firsAnswer = false;
-      } else {
-        print('Received: $receivedData');
+        
+      } else if (n == 2){
+        print('JOINER: ');
+      } else if (n == 10) {
+        socket.close();
       }
     },
     onDone: () {
-      print('Connection closed');
+      print('JOINER: Connection closed');
     },
     onError: (error) {
-      print('Error: $error');
+      print('JOINER: Error: $error');
     },
-  );
+  ).asFuture();
 
   
   await Future.delayed(Duration(seconds: 5));
-  socket.add(jsonEncode({'event': 'data en partida'}));
-  socket.close(WebSocketStatus.goingAway, 'Server is shutting down');
+  return true;
 }

@@ -18,7 +18,7 @@ class Lobby {
     games[gameid] = game; 
 
     final finished =  game.start();
-    player.receiveEvents(game);
+    await player.receiveEvents(game);
     
     await finished;
 
@@ -28,7 +28,7 @@ class Lobby {
   }
 
 
-  void join (WebSocket socket, int gameid, String playerName) {
+  Future<void> join (WebSocket socket, int gameid, String playerName) async {
     final player = Player('un nombre', socket);
     
     if (!games.containsKey(gameid)) {
@@ -38,7 +38,7 @@ class Lobby {
     var game = games[gameid]; 
 
     if (game!.addPlayer(player)) {
-      player.receiveEvents(game);
+      await player.receiveEvents(game);
     }
   }
 

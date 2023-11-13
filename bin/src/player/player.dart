@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../events/game_events/game_event.dart';
+import '../events/server_events/error.dart';
 import '../events/server_events/server_event.dart';
 import '../game/game.dart';
 
@@ -23,9 +24,8 @@ class Player {
   }
 
   // escucha mensajes del cliente y los forwardea a la queue del juego.
-  // TODO: por que no es async esto.
-  void receiveEvents(Game game) {
-    _socket.listen(
+  Future<void> receiveEvents(Game game) async {
+    await _socket.listen(
       (data) {
         print('Received: $data');
         try {
@@ -34,7 +34,8 @@ class Player {
           if (!success) return; // TODO
 
         } catch (e) {
-          print('FALLLLOOOOOOOOO'); // TODO
+          print('Error: ${e.toString()}');
+          send(ErrorEvent(e.toString()));
         }
       },
       onDone: () {
@@ -43,7 +44,7 @@ class Player {
       onError: (error) {
         print('Error: $error');
       },
-    );
+    ).asFuture();
   }
 
 }

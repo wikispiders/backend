@@ -5,32 +5,42 @@ import 'joiner.dart';
 
 void main() async {
   final socket = await WebSocket.connect('ws://127.0.0.1:4040/create');
-  var firsAnswer = true;
-  late Future<void> waitJoiner;
-  socket.listen(
-    (data) {
+  var n = 0;
+  Future<bool>? waitJoiner;
+  await socket.listen(
+    (data) async {
+      n++;
       Map<String, dynamic> receivedData = jsonDecode(data);
-      if (firsAnswer) {
+      print('CREATOR: Received: $receivedData}');
+      if (n == 1) {
         final gameId = receivedData['gameid'];
         waitJoiner = joiner(gameId);
-        print('Received: ${receivedData['gameid']}');
+
+        // espero a que se una el joiner.
+        await Future.delayed(Duration(seconds: 2));
         // Aca imprimiriamos el juego en el front.
-        firsAnswer = false;
-      } else {
-        print('Received: $receivedData');
+      } else if (n == 2) {
+        // evento de join successful.
+        final players = receivedData['players'];
+        print('CREATOR: Los jugadores son: $players');
+        print('CREATOR: comenzando la partida');
+        final creatorData = {
+          'event': 'start_game',
+        };
+        socket.add(jsonEncode(creatorData));
+
+      } else if (n == 3) {
+        socket.close();  
       }
+      
     },
     onDone: () {
-      print('Connection closed');
+      print('CREATOR: Connection closed');
     },
     onError: (error) {
-      print('Error: $error');
+      print('CREATOR: Error: $error');
     },
-  );
+  ).asFuture();
 
-
-  await Future.delayed(Duration(seconds: 5));
-  socket.add(jsonEncode({'event': 'data en partida'}));
-  socket.close(WebSocketStatus.goingAway, 'Server is shutting down');
   await waitJoiner;
 }
