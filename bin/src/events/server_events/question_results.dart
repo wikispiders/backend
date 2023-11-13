@@ -18,18 +18,18 @@ class Answer {
 
 class QuestionResults extends ServerEvent {
   final String question;
-  final String correcAnswer;
+  final String correctAnswer;
   final List<Answer> playersAnswers;
   final int timeNextEvent;
 
-  QuestionResults(this.question, this.correcAnswer, this.playersAnswers, this.timeNextEvent);
+  QuestionResults(this.question, this.correctAnswer, this.playersAnswers, this.timeNextEvent);
   
   @override
   String encode() {
     return jsonEncode({
       'event': 'question_results',
       'question': question,
-      'correct_answer': correcAnswer,
+      'correct_answer': correctAnswer,
       'players_answers': playersAnswers.map((answer) => answer.toJson()).toList(),
       'time_next_event': timeNextEvent,
     });

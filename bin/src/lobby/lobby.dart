@@ -18,9 +18,11 @@ class Lobby {
     games[gameid] = game; 
 
     final finished =  game.start();
-    player.receiveEvents(game.eventsQueue);
+    player.receiveEvents(game);
     
     await finished;
+
+    // TODO: podria hacer un await por los dos al mismo tiempo de lo de arriba.
     games.remove(gameid);
     print('termina el creador');
   }
@@ -36,10 +38,9 @@ class Lobby {
     var game = games[gameid]; 
 
     if (game!.addPlayer(player)) {
-      player.receiveEvents(game.eventsQueue);
+      player.receiveEvents(game);
     }
   }
-  
 
   int _generateGameId() {
     var posibleGameid = Random().nextInt(900000) + 100000; // numero de 6 digitos.

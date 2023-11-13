@@ -1,27 +1,31 @@
-
 import 'dart:async';
-import 'dart:convert';
 
-import '../events/game_events/game_event.dart';
 import '../events/server_events/create_successful.dart';
 import '../events/server_events/error.dart';
 import '../events/server_events/join_successful.dart';
+import '../events/server_events/question.dart';
 import '../events/server_events/server_event.dart';
 import '../events/server_events/start_game.dart';
 import '../player/player.dart';
+import 'constants.dart';
+import 'questions.dart';
+
+const int creatorId = 0;
 
 class Game {
   int gameid;
-  List<Player> players = [];
+  int lastPlayerId = creatorId;
+  Map<int, Player> players = {};
   var started = false;
-  late final Future<void> gameLoopEnded;
-  final loopsGame = 5; // TODO constante
-  final StreamController<GameEvent> _eventsQueue = StreamController<GameEvent>();
-  StreamController<GameEvent> get eventsQueue => _eventsQueue;
+  Completer<void> gameStarted = Completer<void>();
+  Completer<void> creatorLeftBeforeStart = Completer<void>(); // TODO: usarlo/
+  // TODO: Completer<void> allPlayersLeft = Completer<void>();
+
+  late Questions questions;
 
 
   Game(this.gameid, Player player) {
-    players = [player];
+    players[creatorId] = player;
     player.send(CreateSuccessful(gameid));
   }
 
@@ -29,94 +33,80 @@ class Game {
     if (started) {
       player.send(ErrorEvent('Game already started'));
       return false;
-    } else {  
-      players.add(player);
-      broadcast(JoinSuccessful(player.name, players.map((p) => p.name).toList()));
+    } else {
+      lastPlayerId++;
+      players[lastPlayerId] = player;
+      player.addId(lastPlayerId);
+      broadcast(JoinSuccessful(player.name, playersNames()));
       return true;
     }
   }
 
-  Future<void> start() async {
-    print('arranca la partida');
-    await for (GameEvent event in _eventsQueue.stream) {
-      if (event.execute(this)) break;
+// TODO: removePlayer que llame al completer si no hay ningun jugador conectado.
+
+  void removePlayer(int playerId) {
+    if (playerId == creatorId && !started) {
+      creatorLeftBeforeStart.complete();
     }
+    players.remove(playerId);
+    // TODO: broadcast remove.
+  }
+
+
+  Future<void> start() async {
+    await gameStarted.future; // TODO: await de se va el creador.
     if (started) {
-      await gameLoopEnded;
+      await gameLoop();
     }
     print('Termina el juego');
   }
 
 
-  void startGame() {
+  bool startGame() {
     if (started) {
       print('Error: already started');
+      return false;
     } else {
       started = true;
-      gameLoopEnded = gameLoop();
+      gameStarted.complete();
+      return true;
     }
   }
 
   void broadcast (ServerEvent message) {
-    for (final player in players) {
+    players.forEach((id, player) {
       player.send(message);
-    }
+    });
   }
 
 
  Future<void> gameLoop() async {
     print('Starting Gameloop');
+    questions = Questions.fromRandomQuestions(playersNames());
 
     print('notify players of start...');
     
-    final timeToStart = 3;
-    broadcast(StartGame(timeToStart));
-    await Future.delayed(Duration(seconds: timeToStart), () {
-      print('Game is about to start');
-    });
-      
-      jsonEncode({
-      'event': 'start',
-      'time': 10,
-    }) as EventDTO);
-    await Future.delayed(Duration(seconds: 10), () {
-      print('Game is about to start');
-    });
-    for (int i = 0; i < loopsGame; ++i) {
-      await Future.delayed(Duration(seconds: 10), () {
-        print('Jugando..');
-        // update game state results
-        // send answers
-        // send next question
-        // 
-      });
+    broadcast(StartGame(TIME_UNTIL_START_SECONDS));
+    await Future.delayed(Duration(seconds: TIME_UNTIL_START_SECONDS));  
+    print('Game is about to start');
+  
+    while (questions.moreToProcess()) {
+      final FullQuestion currentQuestion = questions.current();
+      broadcast(Question(currentQuestion.question, currentQuestion.options, QUESTION_DURATION_SECONDS));
+      await Future.delayed(Duration(seconds: QUESTION_DURATION_SECONDS));
+      broadcast(questions.getResults()); 
     }
+    // TODO: broadcast Final Stats (el que tuvo mejor racha, el que fue mas lento, el mas rapido).
+
     print('Terminando..');
-    _eventsQueue.add(jsonEncode({'event': 'end'}));
-    
-
-
   }
 
-  void sendQuestionToPlayers() {
-    // Lógica para enviar la pregunta y opciones a los jugadores
-    var question = '¿Ejemplo de pregunta?';
-    var options = ['Opción 1', 'Opción 2', 'Opción 3'];
-
-    for (var player in players) {
-      player.add(jsonEncode({'question': question, 'options': options}));
-    }
-
-    Timer(Duration(seconds: 10), () {
-      sendResultsToPlayers();
+  List<String> playersNames() {
+    List<String> names = [];
+    players.forEach((id, player) { 
+      names.add(player.name);
     });
+    return names;
   }
 
-  void sendResultsToPlayers() {
-    // Lógica para enviar los resultados a los jugadores
-    var results = {'player1': 'resultado', 'player2': 'resultado'};
-    for (var player in players) {
-      player.add(jsonEncode({'results': results}));
-    }
-  }
 }
