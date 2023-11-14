@@ -20,6 +20,7 @@ class Questions {
   Questions._(this.questions, this.answers, this.pointsResults): currentQuestion = 0;
 
   factory Questions.fromRandomQuestions(List<String> players) {
+    // TODO: preguntarle aca a chatgpt.
     final q = [FullQuestion('q1', ['r1', 'r2', 'r3'], 'r1'), 
                FullQuestion('q2', ['r1', 'r2', 'r3'], 'r1'),
                FullQuestion('q3', ['r1', 'r2', 'r3'], 'r1'),
@@ -66,7 +67,7 @@ class Questions {
     int points = 0;
     if (current.answer == answer) {
       points += BASE_POINTS_CORRECT_ANSWER;
-      points += max(0, (MAX_ADDED_POINTS_CORRECT_ANSWER * (QUESTION_DURATION_SECONDS - elapsedSinceQuestion) / QUESTION_DURATION_SECONDS) as int);
+      points += max(0, MAX_ADDED_POINTS_CORRECT_ANSWER * (QUESTION_DURATION_MILLI - elapsedSinceQuestion) ~/ QUESTION_DURATION_MILLI);
     } 
     pointsResults[player] = (pointsResults[player]! + points);   
     return true;

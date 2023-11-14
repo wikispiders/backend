@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'package:logging/logging.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../events/game_events/game_event.dart';
 import '../events/server_events/error.dart';
@@ -8,43 +9,29 @@ import '../game/game.dart';
 
 class Player {
   final String _name;
-  final WebSocket _socket;
-  int playerId = -1;
+  final WebSocketChannel _socket;
+  final Logger _logger;
   String get name => _name;
-  Player(this._name, this._socket);
-
-  void addId(int id) {
-    playerId = id;
-  }
-
-  // TODO: revisar si hay que usar WebSocket o el channel async.
+  Player(this._name, this._socket): _logger = Logger('Player-$_name');
 
   void send(ServerEvent message) {
-    _socket.add(message.encode());
+    _socket.sink.add(message.encode()); // TODO: por que esto no es async????
+    // TODO: Que pasa si esto falla??
   }
 
-  // escucha mensajes del cliente y los forwardea a la queue del juego.
   Future<void> receiveEvents(Game game) async {
-    await _socket.listen(
-      (data) {
-        print('Received: $data');
-        try {
-          final GameEvent event = GameEvent.fromEncodedData(data, _name);
-          bool success = event.execute(game);
-          if (!success) return; // TODO
-
-        } catch (e) {
-          print('Error: ${e.toString()}');
-          send(ErrorEvent(e.toString()));
-        }
-      },
-      onDone: () {
-        print('Connection closed');
-      },
-      onError: (error) {
-        print('Error: $error');
-      },
-    ).asFuture();
+    await _socket.stream.forEach((data) { 
+      _logger.finest('Received: $data');
+      try {
+        final GameEvent event = GameEvent.fromEncodedData(data, _name);
+        bool continueListening = event.execute(game);
+        if (!continueListening) return;
+      } catch (e) {
+        _logger.warning('Error: ${e.toString()}');
+        send(ErrorEvent(e.toString()));
+      }
+    });
+    game.removePlayer(_name);
   }
 
 }

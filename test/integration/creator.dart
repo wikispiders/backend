@@ -4,7 +4,7 @@ import 'dart:io';
 import 'joiner.dart';
 
 void main() async {
-  final socket = await WebSocket.connect('ws://127.0.0.1:4040/create');
+  final socket = await WebSocket.connect('ws://127.0.0.1:4040/create/Mateo');
   var n = 0;
   Future<bool>? waitJoiner;
   await socket.listen(
@@ -29,7 +29,7 @@ void main() async {
         };
         socket.add(jsonEncode(creatorData));
 
-      } else if (n == 3) {
+      } else if (n == 10) {
         socket.close();  
       }
       

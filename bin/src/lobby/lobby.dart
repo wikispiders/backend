@@ -1,41 +1,42 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
+
+import 'package:logging/logging.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../events/server_events/error.dart';
 import '../player/player.dart';
 import '../game/game.dart';
 
 class Lobby {
-  Map<int, Game> games = {};
+  final Map<int, Game> _games = {};
+  final _logger = Logger('Lobby') ;
 
   Lobby();
 
-  Future<void> create (WebSocket socket, String playerName) async {
-    final gameid = _generateGameId(); 
+  Future<void> create (WebSocketChannel socket, String playerName) async {
+    final gameid = _generateGameId();
     final player = Player(playerName, socket);
-    var game = Game(gameid, player);
-    games[gameid] = game; 
+    final game = Game(gameid, player);
+    _games[gameid] = game;
+    _logger.info('Game $gameid created. Number of Games: ${_games.length}');
 
-    final finished =  game.start();
-    await player.receiveEvents(game);
-    
-    await finished;
+    await Future.wait([game.start(), player.receiveEvents(game)]);
 
-    // TODO: podria hacer un await por los dos al mismo tiempo de lo de arriba.
-    games.remove(gameid);
-    print('termina el creador');
+    _games.remove(gameid);
+    _logger.fine('Creator $playerName finishes');
   }
 
 
-  Future<void> join (WebSocket socket, int gameid, String playerName) async {
-    final player = Player('un nombre', socket);
+  Future<void> join (WebSocketChannel socket, int gameid, String playerName) async {
+    final player = Player(playerName, socket);
     
-    if (!games.containsKey(gameid)) {
-      player.send(ErrorEvent('Game doesnt exist'));
+    if (!_games.containsKey(gameid)) {
+      _logger.warning('Error: Game $gameid does not exist');
+      player.send(ErrorEvent('Game $gameid does not exist'));
       return;
     }
-    var game = games[gameid]; 
+    final game = _games[gameid]; 
 
     if (game!.addPlayer(player)) {
       await player.receiveEvents(game);
@@ -44,7 +45,7 @@ class Lobby {
 
   int _generateGameId() {
     var posibleGameid = Random().nextInt(900000) + 100000; // numero de 6 digitos.
-    while (games.containsKey(posibleGameid)) {
+    while (_games.containsKey(posibleGameid)) {
       posibleGameid = Random().nextInt(900000) + 100000;
     }
     return posibleGameid;
