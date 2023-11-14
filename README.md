@@ -1,5 +1,17 @@
 # backend
 
+## TODO
+1. Mejorar logs: agregar cuando mandamos errores.
+2. Enviar estadisticas finales. Falta crear una clase Stats que dependa de Questions que mantenga las estadisticas.
+3. Agregar test: terminar el test de integracion.
+4. Resolver problemas de linter y chequeos estaticos.
+5. Cambiar el dockerfile y dockercompose para que ande.
+6. Agregar variables de entorno de logging en .env.
+7. Integracion con ChatGPT para obtener las preguntas.
+8. Cambiar variables publicas a privadas.
+9. Chequear Race Conditions.
+10. Resolver TODOs en el codigo.
+
 ## Run
 ```bash
 docker-compose up --build
