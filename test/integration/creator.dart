@@ -29,7 +29,7 @@ void main() async {
         };
         socket.add(jsonEncode(creatorData));
 
-      } else if (n == 3) {
+      } else if (n == 10) {
         socket.close();  
       }
       

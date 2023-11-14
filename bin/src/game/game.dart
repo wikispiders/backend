@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 
+import '../events/server_events/answer_submited.dart';
 import '../events/server_events/create_successful.dart';
 import '../events/server_events/error.dart';
 import '../events/server_events/join_successful.dart';
+import '../events/server_events/play_again_request.dart';
+import '../events/server_events/player_left.dart';
 import '../events/server_events/question.dart';
 import '../events/server_events/server_event.dart';
 import '../events/server_events/start_game.dart';
@@ -19,9 +22,9 @@ class Game {
   List<Player> players = [];
   var started = false;
   final Logger _logger;
+  bool playAgainSended = false;
   Completer<void> gameStarted = Completer<void>();
-  Completer<void> creatorLeftBeforeStart = Completer<void>(); // TODO: usarlo/
-  // TODO: Completer<void> allPlayersLeft = Completer<void>();
+  Completer<void> allPlayersLeft = Completer<void>();
 
   late Questions questions;
 
@@ -45,28 +48,36 @@ class Game {
     }
   }
 
-// TODO: removePlayer que llame al completer si no hay ningun jugador conectado.
   void removePlayer(String playerName) {
-    if (playerName == creatorName && !started) {
-      creatorLeftBeforeStart.complete();
-    }
-
     players.removeWhere((player) => player.name == playerName);
-    // TODO: broadcast remove.
+    if (players.isEmpty) {
+      allPlayersLeft.complete();
+    } else if (playerName == creatorName) {
+      creatorName = players[0].name;
+    }
+    broadcast(PlayerLeft(playerName, creatorName));
   }
 
 
   Future<void> start() async {
-    await gameStarted.future; // TODO: await de se va el creador y de si se van todos.
-    if (started) {
+    await Future.any([gameStarted.future, allPlayersLeft.future]);
+    if (players.isEmpty) {
+      _logger.info('All players left');
+      return;
+    } else if (started) {
       await gameLoop();
     }
     _logger.info('Game over');
   }
 
 
-  bool startGame() {
-    if (started) {
+  bool startGame(String player) {
+    if (player != creatorName) {
+      sendToPlayer(ErrorEvent('Only the Creator can start the Game'), player);
+      _logger.warning('Error: joiner can not start game');
+      return false;
+    } else if (started) {
+      sendToPlayer(ErrorEvent('Game Already Started'), player);
       _logger.warning('Error: already started');
       return false;
     } else {
@@ -82,8 +93,11 @@ class Game {
     }
   }
 
+  void sendToPlayer(ServerEvent message, String name) {
+    players.firstWhere((player) => player.name == name).send(message);
+  }
 
- Future<void> gameLoop() async {
+  Future<void> gameLoop() async {
     _logger.finer('Starting Gameloop');
     questions = Questions.fromRandomQuestions(playersNames());
 
@@ -97,7 +111,8 @@ class Game {
       final FullQuestion currentQuestion = questions.current();
       broadcast(Question(currentQuestion.question, currentQuestion.options, QUESTION_DURATION_SECONDS));
       await Future.delayed(Duration(seconds: QUESTION_DURATION_SECONDS));
-      broadcast(questions.getResults()); 
+      broadcast(questions.getResults());
+      await Future.delayed(Duration(seconds: TIME_STATS_SECONDS));
     }
     // TODO: broadcast Final Stats (el que tuvo mejor racha, el que fue mas lento, el mas rapido).
   }
@@ -107,8 +122,20 @@ class Game {
   }
 
   void submitAnswer(String question, String answer, String player) {
-    questions.submitAnswer(question, answer, player);
-    // TODO: mandarle al player en particular a quien presiono el.
+    if (questions.submitAnswer(question, answer, player)) {
+      sendToPlayer(AnswerSubmitted(question, answer), player);
+    } else {
+      sendToPlayer(ErrorEvent('Unable to submit answer $answer to question $question'), player);
+    }
   }
 
+
+  void playAgainRequest(String name, int newGameId) {
+    if (playAgainSended) {
+      sendToPlayer(ErrorEvent('Play Again Already Sended'), name);
+    } else {
+      playAgainSended = true;
+      broadcast(PlayAgainRequest(newGameId, name));
+    }
+  }
 }

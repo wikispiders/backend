@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:logging/logging.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../events/server_events/error.dart';
 import '../player/player.dart';
@@ -14,7 +15,7 @@ class Lobby {
 
   Lobby();
 
-  Future<void> create (WebSocket socket, String playerName) async {
+  Future<void> create (WebSocketChannel socket, String playerName) async {
     final gameid = _generateGameId();
     final player = Player(playerName, socket);
     final game = Game(gameid, player);
@@ -28,10 +29,11 @@ class Lobby {
   }
 
 
-  Future<void> join (WebSocket socket, int gameid, String playerName) async {
+  Future<void> join (WebSocketChannel socket, int gameid, String playerName) async {
     final player = Player(playerName, socket);
     
     if (!_games.containsKey(gameid)) {
+      _logger.warning('Error: Game $gameid does not exist');
       player.send(ErrorEvent('Game $gameid does not exist'));
       return;
     }
