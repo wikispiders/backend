@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:http/http.dart';
 import 'package:test/test.dart';
-import 'package:web_socket_channel/io.dart';
 
 void main() {
   final httpPort = '8080';
