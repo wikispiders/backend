@@ -13,8 +13,8 @@ import '../events/server_events/server_event.dart';
 import '../events/server_events/start_game.dart';
 import '../player/player.dart';
 import 'constants.dart';
+import 'full_question.dart';
 import 'questions.dart';
-
 
 class Game {
   int gameid;
@@ -28,8 +28,9 @@ class Game {
 
   late Questions questions;
 
-
-  Game(this.gameid, Player player): creatorName = player.name, _logger = Logger('Game-$gameid') {
+  Game(this.gameid, Player player)
+      : creatorName = player.name,
+        _logger = Logger('Game-$gameid') {
     players = [player];
     player.send(CreateSuccessful(gameid));
   }
@@ -38,7 +39,7 @@ class Game {
     if (started) {
       player.send(ErrorEvent('Game already started'));
       return false;
-    } else if (playersNames().contains(player.name)){
+    } else if (playersNames().contains(player.name)) {
       player.send(ErrorEvent('Name already in use'));
       return false;
     } else {
@@ -58,7 +59,6 @@ class Game {
     broadcast(PlayerLeft(playerName, creatorName));
   }
 
-
   Future<void> start() async {
     await Future.any([gameStarted.future, allPlayersLeft.future]);
     if (players.isEmpty) {
@@ -69,7 +69,6 @@ class Game {
     }
     _logger.info('Game over');
   }
-
 
   bool startGame(String player) {
     if (player != creatorName) {
@@ -87,7 +86,7 @@ class Game {
     }
   }
 
-  void broadcast (ServerEvent message) {
+  void broadcast(ServerEvent message) {
     for (final player in players) {
       player.send(message);
     }
@@ -99,17 +98,18 @@ class Game {
 
   Future<void> gameLoop() async {
     _logger.finer('Starting Gameloop');
-    questions = Questions.fromRandomQuestions(playersNames());
+    questions = await Questions.fromRandomQuestions(playersNames());
 
     _logger.finest('Notify Players of start...');
-    
+
     broadcast(StartGame(TIME_UNTIL_START_SECONDS));
-    await Future.delayed(Duration(seconds: TIME_UNTIL_START_SECONDS));  
+    await Future.delayed(Duration(seconds: TIME_UNTIL_START_SECONDS));
     _logger.finer('Game sending Questions in loop');
-  
+
     while (questions.moreToProcess()) {
       final FullQuestion currentQuestion = questions.current();
-      broadcast(Question(currentQuestion.question, currentQuestion.options, QUESTION_DURATION_SECONDS));
+      broadcast(Question(currentQuestion.question, currentQuestion.options,
+          QUESTION_DURATION_SECONDS));
       await Future.delayed(Duration(seconds: QUESTION_DURATION_SECONDS));
       broadcast(questions.getResults());
       await Future.delayed(Duration(seconds: TIME_STATS_SECONDS));
@@ -125,10 +125,11 @@ class Game {
     if (questions.submitAnswer(question, answer, player)) {
       sendToPlayer(AnswerSubmitted(question, answer), player);
     } else {
-      sendToPlayer(ErrorEvent('Unable to submit answer $answer to question $question'), player);
+      sendToPlayer(
+          ErrorEvent('Unable to submit answer $answer to question $question'),
+          player);
     }
   }
-
 
   void playAgainRequest(String name, int newGameId) {
     if (playAgainSended) {

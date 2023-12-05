@@ -11,7 +11,7 @@ void main() async {
     (data) async {
       n++;
       Map<String, dynamic> receivedData = jsonDecode(data);
-      print('CREATOR: Received: $receivedData}');
+      // print('CREATOR: Received: $receivedData}');
       if (n == 1) {
         final gameId = receivedData['gameid'];
         waitJoiner = joiner(gameId);
@@ -28,11 +28,9 @@ void main() async {
           'event': 'start_game',
         };
         socket.add(jsonEncode(creatorData));
-
       } else if (n == 10) {
-        socket.close();  
+        socket.close();
       }
-      
     },
     onDone: () {
       print('CREATOR: Connection closed');

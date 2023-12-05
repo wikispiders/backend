@@ -1,15 +1,8 @@
 import 'dart:math';
 import '../events/server_events/question_results.dart';
 import 'constants.dart';
-
-class FullQuestion {
-  final String question;
-  final List<String> options;
-  final String answer;
-
-  FullQuestion(this.question, this.options, this.answer);
-}
-
+import 'trivia_fetcher.dart';
+import 'full_question.dart';
 
 class Questions {
   final List<FullQuestion> questions;
@@ -17,23 +10,17 @@ class Questions {
   int currentQuestion;
   late DateTime currentStartTime;
   Map<String, int> pointsResults;
-  Questions._(this.questions, this.answers, this.pointsResults): currentQuestion = 0;
+  Questions._(this.questions, this.answers, this.pointsResults)
+      : currentQuestion = 0;
 
-  factory Questions.fromRandomQuestions(List<String> players) {
-    // TODO: preguntarle aca a chatgpt.
-    final q = [FullQuestion('q1', ['r1', 'r2', 'r3'], 'r1'), 
-               FullQuestion('q2', ['r1', 'r2', 'r3'], 'r1'),
-               FullQuestion('q3', ['r1', 'r2', 'r3'], 'r1'),
-               FullQuestion('q4', ['r1', 'r2', 'r3'], 'r1'),
-               FullQuestion('q5', ['r1', 'r2', 'r3'], 'r1'),
-               FullQuestion('q6', ['r1', 'r2', 'r3'], 'r1'),
-               FullQuestion('q7', ['r1', 'r2', 'r3'], 'r1'),
-               FullQuestion('q8', ['r1', 'r2', 'r3'], 'r1')];
+  static Future<Questions> fromRandomQuestions(List<String> players) async {
+    List<FullQuestion> q = await fetchTriviaQuestions('10', 'multiple', 10);
     List<Map<String, String>> a = List.generate(q.length, (index) => {});
-    Map<String, int> points =  {};
+    Map<String, int> points = {};
     for (final player in players) {
       points[player] = 0;
     }
+    print("EL largo es ${q.length}");
     return Questions._(q, a, points);
   }
 
@@ -41,7 +28,7 @@ class Questions {
     return questions.length > currentQuestion;
   }
 
-  FullQuestion current() {    
+  FullQuestion current() {
     currentStartTime = DateTime.now();
     return questions[currentQuestion];
   }
@@ -63,13 +50,18 @@ class Questions {
       return false;
     }
     answers[currentQuestion][player] = answer;
-    int elapsedSinceQuestion = answerTime.difference(currentStartTime).inMilliseconds;
+    int elapsedSinceQuestion =
+        answerTime.difference(currentStartTime).inMilliseconds;
     int points = 0;
     if (current.answer == answer) {
       points += BASE_POINTS_CORRECT_ANSWER;
-      points += max(0, MAX_ADDED_POINTS_CORRECT_ANSWER * (QUESTION_DURATION_MILLI - elapsedSinceQuestion) ~/ QUESTION_DURATION_MILLI);
-    } 
-    pointsResults[player] = (pointsResults[player]! + points);   
+      points += max(
+          0,
+          MAX_ADDED_POINTS_CORRECT_ANSWER *
+              (QUESTION_DURATION_MILLI - elapsedSinceQuestion) ~/
+              QUESTION_DURATION_MILLI);
+    }
+    pointsResults[player] = (pointsResults[player]! + points);
     return true;
   }
 
@@ -81,7 +73,7 @@ class Questions {
       answersResult.add(Answer(name, playerAnswer, points));
     });
     currentQuestion++;
-    return QuestionResults(current.question, current.answer, answersResult, TIME_STATS_SECONDS);
+    return QuestionResults(
+        current.question, current.answer, answersResult, TIME_STATS_SECONDS);
   }
-
 }
