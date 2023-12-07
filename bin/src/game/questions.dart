@@ -10,17 +10,17 @@ class Questions {
   int currentQuestion;
   late DateTime currentStartTime;
   Map<String, int> pointsResults;
+
   Questions._(this.questions, this.answers, this.pointsResults)
       : currentQuestion = 0;
 
-  static Future<Questions> fromRandomQuestions(List<String> players) async {
-    List<FullQuestion> q = await fetchTriviaQuestions('10', 'multiple', 10);
+  static Future<Questions> fromRandomQuestions(List<String> players, String category, int amountQuestions, String type) async {
+    List<FullQuestion> q = await fetchTriviaQuestions(category, type, amountQuestions);
     List<Map<String, String>> a = List.generate(q.length, (index) => {});
     Map<String, int> points = {};
     for (final player in players) {
       points[player] = 0;
     }
-    print("EL largo es ${q.length}");
     return Questions._(q, a, points);
   }
 

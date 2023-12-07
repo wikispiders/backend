@@ -26,6 +26,9 @@ void main() async {
         print('CREATOR: comenzando la partida');
         final creatorData = {
           'event': 'start_game',
+          'category': '10',
+          'type': 'multiple',
+          'amount_questions': 10
         };
         socket.add(jsonEncode(creatorData));
       } else if (n == 10) {

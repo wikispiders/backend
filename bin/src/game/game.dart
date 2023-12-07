@@ -25,7 +25,9 @@ class Game {
   bool playAgainSended = false;
   Completer<void> gameStarted = Completer<void>();
   Completer<void> allPlayersLeft = Completer<void>();
-
+  late String category;
+  late int amountQuestions;
+  late String type;
   late Questions questions;
 
   Game(this.gameid, Player player)
@@ -70,7 +72,7 @@ class Game {
     _logger.info('Game over');
   }
 
-  bool startGame(String player) {
+  bool startGame(String player, String category, int amountQuestions, String type) {
     if (player != creatorName) {
       sendToPlayer(ErrorEvent('Only the Creator can start the Game'), player);
       _logger.warning('Error: joiner can not start game');
@@ -80,6 +82,9 @@ class Game {
       _logger.warning('Error: already started');
       return false;
     } else {
+      this.category = category;
+      this.amountQuestions = amountQuestions;
+      this.type = type;
       started = true;
       gameStarted.complete();
       return true;
@@ -98,7 +103,7 @@ class Game {
 
   Future<void> gameLoop() async {
     _logger.finer('Starting Gameloop');
-    questions = await Questions.fromRandomQuestions(playersNames());
+    questions = await Questions.fromRandomQuestions(playersNames(), category, amountQuestions, type);
 
     _logger.finest('Notify Players of start...');
 

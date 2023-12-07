@@ -6,11 +6,9 @@ import 'package:html_unescape/html_unescape.dart';
 Future<List<FullQuestion>> fetchTriviaQuestions(
     String category, String type, int amount) async {
   List<FullQuestion> q = [];
-  final response = await http.get(
-    Uri.parse(
-        'https://opentdb.com/api.php?amount=$amount&category=$category&type=$type'),
-  );
-
+  final String uri = 'https://opentdb.com/api.php?amount=$amount&category=$category&type=$type';
+  final response = await http.get(Uri.parse(uri),);
+  print('Se crea con uri: $uri');
   if (response.statusCode == 200) {
     final jsonResponse = json.decode(response.body);
     final results = jsonResponse['results'];

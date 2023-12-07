@@ -16,8 +16,12 @@ abstract class GameEvent {
     final String? eventType = decodedData['event'];
     
     switch (eventType) {
-      case 'start_game': 
-        return StartGame(playerName);
+      case 'start_game':
+        if (decodedData.containsKey('category') && decodedData.containsKey('amount_questions') && decodedData.containsKey('type')) {
+          return StartGame(playerName, decodedData['category'], decodedData['amount_questions'], decodedData['type']);
+        } else {
+          throw FormatException('Incomplete data for start_game event: $decodedData');
+        }
       case 'submit_answer':
         if (decodedData.containsKey('question') && decodedData.containsKey('answer')) {
           return PlayerAnswer(playerName, decodedData['question'], decodedData['answer']);
