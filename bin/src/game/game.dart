@@ -44,7 +44,7 @@ class Game {
       return false;
     } else {
       players.add(player);
-      broadcast(JoinSuccessful(player.name, playersNames()));
+      broadcast(JoinSuccessful(player.name, playersNames(), gameid));
       return true;
     }
   }

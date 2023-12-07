@@ -4,9 +4,10 @@ import 'server_event.dart';
 
 class JoinSuccessful extends ServerEvent {
   final String newPlayer;
+  final int gameid;
   final List<String> players;
 
-  JoinSuccessful(this.newPlayer, this.players);
+  JoinSuccessful(this.newPlayer, this.players, this.gameid);
   
   @override
   String encode() {
@@ -14,6 +15,7 @@ class JoinSuccessful extends ServerEvent {
       'event': 'join',
       'players': players,
       'new_player': newPlayer,
+      'gameid': gameid
     });
   }
 }
