@@ -10,8 +10,9 @@ class Questions {
   int currentQuestion;
   late DateTime currentStartTime;
   Map<String, int> pointsResults;
+  Map<String, int> lastQuestionResults;
 
-  Questions._(this.questions, this.answers, this.pointsResults)
+  Questions._(this.questions, this.answers, this.pointsResults, this.lastQuestionResults)
       : currentQuestion = 0;
 
   static Future<Questions> fromRandomQuestions(List<String> players, String category, int amountQuestions, String type) async {
@@ -21,7 +22,7 @@ class Questions {
     for (final player in players) {
       points[player] = 0;
     }
-    return Questions._(q, a, points);
+    return Questions._(q, a, points, points);
   }
 
   bool moreToProcess() {
@@ -61,6 +62,7 @@ class Questions {
               (QUESTION_DURATION_MILLI - elapsedSinceQuestion) ~/
               QUESTION_DURATION_MILLI);
     }
+    lastQuestionResults[player] = points;
     pointsResults[player] = (pointsResults[player]! + points);
     return true;
   }
@@ -70,10 +72,18 @@ class Questions {
     List<Answer> answersResult = [];
     pointsResults.forEach((name, points) {
       String playerAnswer = answers[currentQuestion][name] ?? NO_ANSWER;
-      answersResult.add(Answer(name, playerAnswer, points));
+      answersResult.add(Answer(name, playerAnswer, points, lastQuestionResults[name]!));
     });
     currentQuestion++;
+    _cleanPartialResults();
     return QuestionResults(
         current.question, current.answer, answersResult, TIME_STATS_SECONDS);
   }
+
+  void _cleanPartialResults(){
+    lastQuestionResults.forEach((player, _) {
+      lastQuestionResults[player] = 0;
+    });
+  }
+
 }

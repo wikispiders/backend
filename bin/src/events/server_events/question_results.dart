@@ -6,12 +6,15 @@ class Answer {
   final String playerName;
   final String answer;
   final int points;
-  Answer(this.playerName, this.answer, this.points);
+  final int partialPoints;
+
+  Answer(this.playerName, this.answer, this.points, this.partialPoints);
   Map<String, dynamic> toJson() {
     return {
       'name': playerName,
       'answer': answer,
       'points': points,
+      'partial_points': partialPoints,
     };
   }
 }
