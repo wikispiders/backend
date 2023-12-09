@@ -77,7 +77,7 @@ class Questions {
     currentQuestion++;
     _cleanPartialResults();
     return QuestionResults(
-        current.question, current.answer, answersResult, TIME_STATS_SECONDS);
+        current.question, current.answer, answersResult, TIME_STATS_SECONDS,current.options);
   }
 
   void _cleanPartialResults(){
