@@ -116,8 +116,15 @@ class Game {
       broadcast(Question(currentQuestion.question, currentQuestion.options,
           QUESTION_DURATION_SECONDS));
       await Future.delayed(Duration(seconds: QUESTION_DURATION_SECONDS));
-      broadcast(questions.getResults());
-      await Future.delayed(Duration(seconds: TIME_STATS_SECONDS));
+      var results = questions.getResults();
+      broadcast(results);
+      await Future.delayed(Duration(seconds: TIME_FIRST_RESULT_SCREEN));
+      results.next();
+      broadcast(results);
+      await Future.delayed(Duration(seconds: TIME_SECOND_RESULT_LIST_SCREEN));
+      results.next();
+      broadcast(results);
+      await Future.delayed(Duration(seconds: TIME_PARTIAL_RESULTS_SCREEN));
     }
     // TODO: broadcast Final Stats (el que tuvo mejor racha, el que fue mas lento, el mas rapido).
   }
