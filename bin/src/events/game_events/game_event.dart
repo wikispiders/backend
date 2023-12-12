@@ -29,11 +29,7 @@ abstract class GameEvent {
           throw FormatException('Incomplete data for submit_answer event: $decodedData');
         }
       case 'play_again':
-        if (decodedData.containsKey('new_game_id')) {
-          return PlayAgain(playerName, decodedData['new_game_id']);
-        } else {
-          throw FormatException('Incomplete data for play_again event: $decodedData');
-        }
+          return PlayAgain(playerName);
       default:
         throw FormatException('Invalid event: $decodedData');
     }

@@ -6,7 +6,6 @@ import '../events/server_events/answer_submited.dart';
 import '../events/server_events/create_successful.dart';
 import '../events/server_events/error.dart';
 import '../events/server_events/join_successful.dart';
-import '../events/server_events/play_again_request.dart';
 import '../events/server_events/player_left.dart';
 import '../events/server_events/question.dart';
 import '../events/server_events/server_event.dart';
@@ -20,9 +19,9 @@ class Game {
   int gameid;
   String creatorName;
   List<Player> players = [];
+  List<Player> waitingPlayAgainPlayers = [];
   var started = false;
   final Logger _logger;
-  bool playAgainSended = false;
   Completer<void> gameStarted = Completer<void>();
   Completer<void> allPlayersLeft = Completer<void>();
   late String category;
@@ -52,23 +51,32 @@ class Game {
   }
 
   void removePlayer(String playerName) {
+    bool truePlayerLeft = players.any((player) => player.name == playerName);
     players.removeWhere((player) => player.name == playerName);
-    if (players.isEmpty) {
+    waitingPlayAgainPlayers.removeWhere((player) => player.name == playerName);
+    if (players.isEmpty && waitingPlayAgainPlayers.isEmpty) {
       allPlayersLeft.complete();
-    } else if (playerName == creatorName) {
+    } else if (playerName == creatorName && players.isNotEmpty) {
       creatorName = players[0].name;
     }
-    broadcast(PlayerLeft(playerName, creatorName));
+    if (truePlayerLeft) {
+      broadcast(PlayerLeft(playerName, creatorName));
+    }
   }
 
   Future<void> start() async {
-    await Future.any([gameStarted.future, allPlayersLeft.future]);
-    if (players.isEmpty) {
-      _logger.info('All players left');
-      return;
-    } else if (started) {
-      await gameLoop();
+    while (players.isNotEmpty || waitingPlayAgainPlayers.isNotEmpty) {
+      await Future.any([gameStarted.future, allPlayersLeft.future]);
+      if (started) {
+        waitingPlayAgainPlayers = [];
+        await gameLoop();
+        gameStarted = Completer<void>();
+        started = false;
+        waitingPlayAgainPlayers = players;
+        players = [];
+      }
     }
+    _logger.info('All players left');
     _logger.info('Game over');
   }
 
@@ -147,12 +155,16 @@ class Game {
     }
   }
 
-  void playAgainRequest(String name, int newGameId) {
-    if (playAgainSended) {
-      sendToPlayer(ErrorEvent('Play Again Already Sended'), name);
+  void playAgainRequest(String name) {
+    Player player = waitingPlayAgainPlayers.firstWhere((player) => player.name == name);
+    players.add(player);
+    if (players.length == 1) {
+      // Es el primero en pedir Play Again -> Es el creador.
+      creatorName = name;
+      player.send(CreateSuccessful(gameid));
     } else {
-      playAgainSended = true;
-      broadcast(PlayAgainRequest(newGameId, name));
+      // Se une a la partida.
+      broadcast(JoinSuccessful(player.name, playersNames(), gameid));
     }
   }
 }
