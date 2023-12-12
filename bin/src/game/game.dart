@@ -68,12 +68,12 @@ class Game {
     while (players.isNotEmpty || waitingPlayAgainPlayers.isNotEmpty) {
       await Future.any([gameStarted.future, allPlayersLeft.future]);
       if (started) {
-        waitingPlayAgainPlayers = [];
+        waitingPlayAgainPlayers.clear();
         await gameLoop();
         gameStarted = Completer<void>();
         started = false;
-        waitingPlayAgainPlayers = players;
-        players = [];
+        waitingPlayAgainPlayers.addAll(players);
+        players.clear();
       }
     }
     _logger.info('All players left');

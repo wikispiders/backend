@@ -14,7 +14,7 @@ abstract class GameEvent {
   static GameEvent fromEncodedData(String data, String playerName) {
     final decodedData = jsonDecode(data);
     final String? eventType = decodedData['event'];
-    
+
     switch (eventType) {
       case 'start_game':
         if (decodedData.containsKey('category') && decodedData.containsKey('amount_questions') && decodedData.containsKey('type')) {
@@ -34,5 +34,4 @@ abstract class GameEvent {
         throw FormatException('Invalid event: $decodedData');
     }
   }
-
 }

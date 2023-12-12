@@ -22,7 +22,7 @@ class Questions {
     for (final player in players) {
       points[player] = 0;
     }
-    return Questions._(q, a, points, points);
+    return Questions._(q, a, points, Map.from(points));
   }
 
   bool moreToProcess() {
