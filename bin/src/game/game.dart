@@ -125,8 +125,12 @@ class Game {
       results.next();
       broadcast(results);
       await Future.delayed(Duration(seconds: TIME_PARTIAL_RESULTS_SCREEN));
+      if (!questions.moreToProcess()) {
+        results.next();
+        broadcast(results);
+        print("Se broadcastea el result");
+      }
     }
-    // TODO: broadcast Final Stats (el que tuvo mejor racha, el que fue mas lento, el mas rapido).
   }
 
   List<String> playersNames() {
