@@ -15,8 +15,7 @@ class Player {
   Player(this._name, this._socket): _logger = Logger('Player-$_name');
 
   void send(ServerEvent message) {
-    _socket.sink.add(message.encode()); // TODO: por que esto no es async????
-    // TODO: Que pasa si esto falla??
+    _socket.sink.add(message.encode());
   }
 
   Future<void> receiveEvents(Game game) async {

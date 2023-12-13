@@ -1,3 +1,4 @@
+// ignore_for_file: constant_identifier_names
 const int TIME_UNTIL_START_SECONDS = 5;
 const int QUESTION_DURATION_SECONDS = 10;
 const int QUESTION_DURATION_MILLI = QUESTION_DURATION_SECONDS * 1000;
@@ -5,7 +6,7 @@ const int MAX_ADDED_POINTS_CORRECT_ANSWER = 900;
 const int BASE_POINTS_CORRECT_ANSWER = 100;
 const int TIME_STATS_SECONDS = 5;
 const int NUMBER_QUESTIONS = 8;
-const String NO_ANSWER = 'NO ANSWER';
+const String NO_ANSWER = 'Too Slow';
 
 const int TIME_FIRST_RESULT_SCREEN = 3;
 
