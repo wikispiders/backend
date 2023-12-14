@@ -26,8 +26,12 @@ class QuestionResults extends ServerEvent {
   final int timeNextEvent;
   final List<String> options;
   int screen = 0; 
+  final int numberOfQuestion;
+  final int totalQuestions;
+
   
-  QuestionResults(this.question, this.correctAnswer, this.playersAnswers, this.timeNextEvent, this.options);
+  QuestionResults(this.question, this.correctAnswer, this.playersAnswers,
+                  this.timeNextEvent, this.options, this.numberOfQuestion, this.totalQuestions);
 
   void next() {
     screen = screen + 1;
@@ -43,6 +47,8 @@ class QuestionResults extends ServerEvent {
       'time_next_event': timeNextEvent,
       'options': options,
       'screen': screen,
+      'number_of_question': numberOfQuestion,
+      'total_questions': totalQuestions,
     });
   }
 }

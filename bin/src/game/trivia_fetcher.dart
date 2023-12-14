@@ -13,7 +13,8 @@ Future<List<FullQuestion>> fetchTriviaQuestions(
     final jsonResponse = json.decode(response.body);
     final results = jsonResponse['results'];
 
-    for (var result in results) {
+    for (var i = 0; i < results.length; ++i) {
+      final result = results[i];
       final question = HtmlUnescape().convert(result['question']);
       final options = List<String>.from(result['incorrect_answers'])
           .map((e) => HtmlUnescape().convert(e))
@@ -21,7 +22,7 @@ Future<List<FullQuestion>> fetchTriviaQuestions(
       final answer = HtmlUnescape().convert(result['correct_answer']);
       options.add(answer);
       options.shuffle();
-      q.add(FullQuestion(question, options, answer));
+      q.add(FullQuestion(question, options, answer, i+1, results.length));
     }
     return q;
   } else {

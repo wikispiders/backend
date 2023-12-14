@@ -6,8 +6,11 @@ class Question extends ServerEvent {
   final String question;
   final List<String> options;
   final int timeToAnswer;
+  final int numberOfQuestion;
+  final int totalQuestions;
 
-  Question(this.question, this.options, this.timeToAnswer);
+
+  Question(this.question, this.options, this.timeToAnswer, this.numberOfQuestion, this.totalQuestions);
   
   @override
   String encode() {
@@ -16,6 +19,8 @@ class Question extends ServerEvent {
       'question': question,
       'options': options,
       'time': timeToAnswer,
+      'number_of_question': numberOfQuestion,
+      'total_questions': totalQuestions,
     });
   }
 }

@@ -122,7 +122,7 @@ class Game {
     while (questions.moreToProcess()) {
       final FullQuestion currentQuestion = questions.current();
       broadcast(Question(currentQuestion.question, currentQuestion.options,
-          QUESTION_DURATION_SECONDS));
+          QUESTION_DURATION_SECONDS, currentQuestion.numberOfQuestion, currentQuestion.totalQuestions));
       await Future.delayed(Duration(seconds: QUESTION_DURATION_SECONDS));
       var results = questions.getResults();
       broadcast(results);
