@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'server_event.dart';
 
-class PlayerLeft extends ServerEvent {
+class PlayerLeft implements ServerEvent {
   final String creator;
   final String playerLeft;
 

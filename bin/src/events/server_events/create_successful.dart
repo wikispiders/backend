@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'server_event.dart';
 
-class CreateSuccessful extends ServerEvent {
+class CreateSuccessful implements ServerEvent {
   final int gameid;
 
   CreateSuccessful(this.gameid);

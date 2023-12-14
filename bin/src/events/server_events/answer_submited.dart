@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'server_event.dart';
 
-class AnswerSubmitted extends ServerEvent {
+class AnswerSubmitted implements ServerEvent {
   final String question;
   final String answer;
 

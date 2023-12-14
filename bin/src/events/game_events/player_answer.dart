@@ -1,7 +1,7 @@
 import '../../game/game.dart';
 import 'game_event.dart';
 
-class PlayerAnswer extends GameEvent {
+class PlayerAnswer implements GameEvent {
   final String question;
   final String answer;
   final String playerName;
@@ -9,8 +9,16 @@ class PlayerAnswer extends GameEvent {
   PlayerAnswer(this.playerName, this.question, this.answer);
 
   @override
-  bool execute(Game game) {
+  void execute(Game game) {
     game.submitAnswer(question, answer, playerName);
-    return true;
+  }
+
+  factory PlayerAnswer.fromJson(String playerName, Map<String, dynamic> json) {
+    if (!json.containsKey('question') ||
+        !json.containsKey('answer')) {
+      throw FormatException("Incomplete data for start_game event: $json");
+    }
+    return PlayerAnswer(playerName, json['question'], json['answer']);
   }
 }
+

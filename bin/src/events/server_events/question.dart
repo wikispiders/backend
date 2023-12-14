@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'server_event.dart';
 
-class Question extends ServerEvent {
+class Question implements ServerEvent {
   final String question;
   final List<String> options;
   final int timeToAnswer;

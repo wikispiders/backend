@@ -19,7 +19,7 @@ class Answer {
   }
 }
 
-class QuestionResults extends ServerEvent {
+class QuestionResults implements ServerEvent {
   final String question;
   final String correctAnswer;
   final List<Answer> playersAnswers;
