@@ -11,7 +11,7 @@ class ErrorEvent extends ServerEvent {
   String encode() {
     return jsonEncode({
       'event': 'error',
-      'deatails': msg,
+      'details': msg,
     });
   }
 }
