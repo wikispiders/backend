@@ -129,9 +129,6 @@ class Game {
       await Future.delayed(Duration(seconds: TIME_FIRST_RESULT_SCREEN));
       results.next();
       broadcast(results);
-      await Future.delayed(Duration(seconds: TIME_SECOND_RESULT_LIST_SCREEN));
-      results.next();
-      broadcast(results);
       await Future.delayed(Duration(seconds: TIME_PARTIAL_RESULTS_SCREEN));
       if (!questions.moreToProcess()) {
         results.next();
