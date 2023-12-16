@@ -23,8 +23,7 @@ class Player {
       _logger.finest('Received: $data');
       try {
         final GameEvent event = GameEvent.fromEncodedData(data, _name);
-        bool continueListening = event.execute(game);
-        if (!continueListening) return;
+        event.execute(game);
       } catch (e) {
         _logger.warning('Error: ${e.toString()}');
         send(ErrorEvent(e.toString()));

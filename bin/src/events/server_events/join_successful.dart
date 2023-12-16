@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'server_event.dart';
 
-class JoinSuccessful extends ServerEvent {
+class JoinSuccessful implements ServerEvent {
   final String newPlayer;
   final int gameid;
   final List<String> players;

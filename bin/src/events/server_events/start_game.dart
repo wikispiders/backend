@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'server_event.dart';
 
-class StartGame extends ServerEvent {
+class StartGame implements ServerEvent {
   final int timeToStart;
 
   StartGame(this.timeToStart);

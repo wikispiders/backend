@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'server_event.dart';
 
-class ErrorEvent extends ServerEvent {
+class ErrorEvent implements ServerEvent {
   final String msg;
 
   ErrorEvent(this.msg);

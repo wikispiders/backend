@@ -1,14 +1,13 @@
 import '../../game/game.dart';
 import 'game_event.dart';
 
-class PlayAgain extends GameEvent {
+class PlayAgain implements GameEvent {
   final String playerName;
 
   PlayAgain(this.playerName);
 
   @override
-  bool execute(Game game) {
+  void execute(Game game) {
     game.playAgainRequest(playerName);
-    return true;
   }
 }
